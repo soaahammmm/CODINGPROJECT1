@@ -3,14 +3,16 @@
 
 A one-page, scroll-driven brand site for a fictional off-grid dwelling — one 3D model, generated entirely in code, that assembles and evolves as you scroll.
 
-![ENGAWA hero screen — wireframe dwelling behind the wordmark](screenshots/hero.png)
+<img width="1364" height="1334" alt="image" src="https://github.com/user-attachments/assets/0774aaf2-2ac3-4f9a-9469-9c305502ff6d" />
+<img width="1348" height="1308" alt="image" src="https://github.com/user-attachments/assets/d1572dc7-437f-40bf-a152-d015d05f6bf1" />
+
 
 
 
 ## Quick start
 
 - **Run locally:** `npx serve .` from this folder, then open the printed URL. No build step — it just needs a real server, since ES modules won't load from a `file://` URL. (VS Code's Live Server extension works too.)
-- **Deploy:** drag the folder onto [app.netlify.com/drop](https://app.netlify.com/drop). No build command needed — `netlify.toml` is already set up.
+- **Deploy:** drag the folder onto https://app.netlify.com/projects/precious-biscuit-dcc78b/deploys/6a49121545ed0809cb18e2fd 
 
 ## Features
 
@@ -20,8 +22,6 @@ A one-page, scroll-driven brand site for a fictional off-grid dwelling — one 3
 - **Live configurator** in Chapter 03 — swap cladding, footprint, and interior, with a real-time spec read-out
 - **Real reduced-motion mode** — the model stands fully built and static, no scroll-jacking, page reads as plain HTML
 - **Working waitlist form** — stores real submissions via Netlify Forms once deployed
-
-![Chapter 02, "The System" — the model assembling as you scroll](screenshots/assembly.png)
 
 ## How it works
 
