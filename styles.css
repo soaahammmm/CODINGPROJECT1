@@ -1,0 +1,731 @@
+/* ============================================================
+   ENGAWA — styles.css
+   Five material tokens, four type roles, and every chapter.
+   Backgrounds decide what the fixed WebGL canvas shows through:
+   transparent chapters (00, 02, 03, 07) reveal the model;
+   opaque chapters (01, 04, 05, 06) cover it.
+   ============================================================ */
+
+/* ---------- 1. Tokens ---------- */
+:root {
+  /* Color — named for the actual materials of the build (§4). */
+  --yakisugi:  #14110E;   /* charred-cedar black — primary dark canvas   */
+  --hinoki:    #E8DFC8;   /* pale cypress — light "breather" chapters    */
+  --fog:       #8B8579;   /* weathered ash — secondary text, dividers    */
+  --verdigris: #4E7C74;   /* oxidized copper — CTAs, links, active state */
+  --ai-indigo: #24303D;   /* indigo dye — technical/data chapters only   */
+
+  /* Derived states — mixed from the five tokens, never a sixth hue. */
+  --verdigris-bright: color-mix(in oklab, var(--verdigris) 70%, var(--hinoki) 30%); /* focus/hover on dark */
+  --hinoki-dim:       color-mix(in oklab, var(--hinoki) 60%, var(--fog) 40%);
+  --yakisugi-soft:    color-mix(in oklab, var(--yakisugi) 82%, var(--hinoki) 18%);  /* raised panels on dark */
+  --indigo-deep:      color-mix(in oklab, var(--ai-indigo) 70%, var(--yakisugi) 30%);
+
+  /* Type roles */
+  --serif: "Newsreader", Georgia, serif;
+  --impact: "Unbounded", sans-serif;
+  --sans: "Bricolage Grotesque", "Helvetica Neue", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  /* Scale (§4) */
+  --fs-impact: clamp(2rem, 11vw, 10.5rem);
+  --fs-headline: clamp(2.5rem, 6vw, 5rem);
+  --fs-broken: clamp(3.4rem, 13vw, 11rem); /* the manifesto's exploded lines */
+  --fs-body: clamp(1.05rem, 0.95rem + 0.4vw, 1.25rem);
+  --fs-mono: 0.8rem;
+
+  /* Rhythm */
+  --space: clamp(1.2rem, 2.5vw, 2.4rem);
+  --gutter: clamp(1.2rem, 5vw, 6rem);
+  --measure: 34em;
+
+  /* Layers: canvas 0 · content 1 · chrome 40 · grain 50 · threshold 60 · cursor 70 */
+}
+
+/* ---------- 2. Reset & base ---------- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; }
+
+html { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+}
+
+body {
+  background: var(--yakisugi);
+  color: var(--hinoki);
+  font-family: var(--sans);
+  font-size: var(--fs-body);
+  line-height: 1.6;
+  font-weight: 340;
+  overflow-x: hidden;
+  min-height: 100dvh;
+}
+body.is-gated { overflow: hidden; } /* no scrolling until the visitor steps through */
+
+::selection { background: var(--verdigris); color: var(--yakisugi); }
+
+h1, h2, h3 { font-weight: 400; line-height: 1.12; }
+em { font-style: italic; }
+fieldset { border: 0; padding: 0; }
+button { font: inherit; cursor: pointer; }
+input, select { font: inherit; }
+svg text { font-family: var(--mono); }
+
+.mono {
+  font-family: var(--mono);
+  font-size: var(--fs-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 400;
+}
+
+/* Visible keyboard focus everywhere, derived from the accent token. */
+:focus-visible {
+  outline: 2px solid var(--verdigris-bright);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+.skip-link {
+  position: fixed; top: 0.75rem; left: 0.75rem;
+  z-index: 80;
+  padding: 0.6rem 1rem;
+  background: var(--verdigris); color: var(--yakisugi);
+  font-weight: 500; text-decoration: none;
+  transform: translateY(-300%);
+}
+.skip-link:focus-visible { transform: none; }
+
+/* ---------- 3. The throughline canvas ---------- */
+#webgl {
+  position: fixed; inset: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  /* The verdigris-tinted fog gradient the wireframe drifts in (Ch.00). */
+  background:
+    radial-gradient(120% 90% at 50% 110%, color-mix(in oklab, var(--verdigris) 26%, transparent) 0%, transparent 72%),
+    radial-gradient(100% 70% at 50% -10%, color-mix(in oklab, var(--ai-indigo) 45%, transparent) 0%, transparent 68%),
+    var(--yakisugi);
+}
+
+main { position: relative; z-index: 1; }
+main:focus { outline: none; }
+
+.chapter { position: relative; }
+
+.chapter__head { margin-bottom: var(--space); }
+.kicker { display: flex; align-items: baseline; gap: 1em; color: var(--fog); }
+.kicker__num { color: var(--verdigris-bright); }
+
+/* ---------- 4. Threshold gate ---------- */
+.threshold {
+  position: fixed; inset: 0; z-index: 60;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 1.4rem;
+  background: var(--yakisugi);
+  text-align: center;
+  padding: var(--gutter);
+}
+.threshold__mark {
+  font-family: var(--impact);
+  font-weight: 340;
+  font-size: clamp(1.6rem, 4.5vw, 3rem);
+  letter-spacing: 0.42em; /* ceremonial spacing — the Ivress wordmark treatment */
+  margin-right: -0.42em;  /* optical recentring: kill the trailing tracking gap  */
+  color: var(--hinoki);
+}
+.threshold__pct { color: var(--fog); min-height: 1.2em; }
+.threshold__enter {
+  background: none;
+  border: 1px solid var(--fog);
+  color: var(--hinoki);
+  padding: 0.9rem 2.6rem;
+  border-radius: 99px;
+  letter-spacing: 0.06em;
+  transition: border-color 0.25s, color 0.25s, background 0.25s;
+}
+.threshold__enter:disabled { color: var(--fog); cursor: wait; }
+.threshold__enter:not(:disabled) { border-color: var(--verdigris); }
+.threshold__enter:not(:disabled):hover {
+  background: var(--verdigris); color: var(--yakisugi);
+}
+.threshold__hint { color: var(--fog); opacity: 0.7; }
+
+/* ---------- 5. Persistent chrome ---------- */
+/* Sits above the threshold gate (z 60) so the sound toggle is already
+   available at the gate, as the ritual entry demands. */
+.chrome { position: fixed; inset: 0; z-index: 65; pointer-events: none; }
+
+/* Chapter counter — Unbounded use 2 of 3. */
+.chrome__counter {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2.2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  font-family: var(--impact);
+  font-weight: 420;
+  font-size: 0.95rem;
+  letter-spacing: 0.12em;
+  color: var(--hinoki);
+  opacity: 0;               /* revealed after the threshold */
+}
+.chrome__total { color: var(--fog); }
+
+.chrome__sound {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2.2rem);
+  bottom: clamp(1rem, 3vw, 2rem);
+  pointer-events: auto;
+  display: inline-flex; align-items: center; gap: 0.6em;
+  background: color-mix(in srgb, var(--yakisugi) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fog) 45%, transparent);
+  border-radius: 99px;
+  color: var(--fog);
+  padding: 0.45rem 0.95rem;
+  font-family: var(--mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  transition: color 0.25s, border-color 0.25s;
+}
+.chrome__sound:hover { color: var(--hinoki); border-color: var(--fog); }
+.chrome__bars rect { fill: currentColor; }
+.chrome__sound[aria-pressed="true"] { color: var(--verdigris-bright); border-color: var(--verdigris); }
+@keyframes bars {
+  0%, 100% { transform: scaleY(0.4); }
+  50%       { transform: scaleY(1); }
+}
+.chrome__sound[aria-pressed="true"] .chrome__bars rect {
+  transform-origin: center;
+  animation: bars 1.6s ease-in-out infinite;
+}
+.chrome__sound[aria-pressed="true"] .chrome__bars rect:nth-child(2) { animation-delay: 0.25s; }
+.chrome__sound[aria-pressed="true"] .chrome__bars rect:nth-child(3) { animation-delay: 0.5s; }
+.chrome__sound[aria-pressed="true"] .chrome__bars rect:nth-child(4) { animation-delay: 0.12s; }
+
+/* Film grain: the tile is generated at runtime (cursor.js) — no image files. */
+.grain {
+  position: fixed; inset: -50px; z-index: 50;
+  pointer-events: none;
+  opacity: 0.055;
+  mix-blend-mode: overlay;
+  background-repeat: repeat;
+}
+
+/* Custom cursor — enabled by JS only on fine pointers without reduced motion. */
+.cursor { display: none; }
+body.cursor-on .cursor { display: block; position: fixed; inset: 0; z-index: 70; pointer-events: none; }
+body.cursor-on, body.cursor-on a, body.cursor-on button,
+body.cursor-on label, body.cursor-on input, body.cursor-on select { cursor: none; }
+.cursor__dot, .cursor__ring {
+  position: absolute; top: 0; left: 0;
+  border-radius: 50%;
+  translate: -50% -50%;
+}
+.cursor__dot { width: 6px; height: 6px; background: var(--verdigris-bright); }
+.cursor__ring {
+  width: 34px; height: 34px;
+  border: 1px solid color-mix(in srgb, var(--verdigris-bright) 70%, transparent);
+  transition: scale 0.3s ease;
+}
+body.cursor-hover .cursor__ring { scale: 1.6; border-color: var(--verdigris-bright); }
+
+/* ---------- 6. Ch.00 — Arrival ---------- */
+.hero {
+  min-height: 100dvh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center;
+  padding: var(--gutter);
+  background: transparent; /* the wireframe drifts behind */
+}
+/* Hero wordmark — Unbounded use 1 of 3. */
+.hero__mark {
+  font-family: var(--impact);
+  font-weight: 520;
+  font-size: var(--fs-impact);
+  letter-spacing: 0.16em;
+  margin-right: -0.16em; /* optical recentring */
+  line-height: 1;
+  color: var(--hinoki);
+}
+.hero__tagline {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.1rem, 2.2vw, 1.5rem);
+  color: var(--hinoki-dim);
+  margin-top: 1.2rem;
+}
+.hero__coord {
+  position: absolute;
+  left: clamp(1rem, 3vw, 2.2rem);
+  top: clamp(1rem, 3vw, 2rem);
+  color: var(--fog);
+}
+.hero__cue {
+  position: absolute;
+  right: clamp(1rem, 3vw, 2.2rem);
+  top: clamp(1rem, 3vw, 2rem);
+  color: var(--fog);
+  display: inline-flex; gap: 0.6em; align-items: center;
+}
+@keyframes cue-drop {
+  0%, 100% { transform: translateY(-2px); opacity: 0.5; }
+  50%       { transform: translateY(3px);  opacity: 1; }
+}
+.hero__arrow { display: inline-block; animation: cue-drop 2.2s ease-in-out infinite; }
+
+/* ---------- 7. Ch.01 — Manifesto (opaque: covers the canvas) ---------- */
+.manifesto { background: var(--yakisugi); }
+
+/* The broken headline: a tall corridor with a sticky viewport inside.
+   chapters.js scrubs the three lines in as you pass through. */
+.manifesto__stack { height: 320vh; }
+.manifesto__sticky {
+  position: sticky; top: 0;
+  height: 100dvh;
+  display: flex; align-items: center;
+  overflow: hidden;
+  padding-inline: var(--gutter);
+}
+.manifesto__headline {
+  font-family: var(--serif);
+  font-weight: 320;
+  font-size: var(--fs-broken);
+  line-height: 1.02;
+  display: flex; flex-direction: column;
+}
+.mline { display: block; }
+.mline:nth-child(2) { align-self: center; font-style: italic; color: var(--verdigris-bright); }
+.mline:nth-child(3) { align-self: flex-end; }
+
+.manifesto__body {
+  max-width: var(--measure);
+  margin-inline: auto;
+  padding: 20vh var(--gutter) 26vh;
+}
+.manifesto__para { margin-bottom: 1.6em; }
+.manifesto__para em { color: var(--verdigris-bright); }
+.manifesto__pull {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  line-height: 1.3;
+  color: var(--hinoki);
+  border-left: 2px solid var(--verdigris);
+  padding-left: 1.2em;
+  margin-top: 2.5em;
+}
+
+/* ---------- 8. Ch.02 — The System (transparent + indigo vignette) ---------- */
+.system {
+  /* Pin length: ~4 extra viewports of scroll drive the 5 assembly phases. */
+  height: 500vh;
+  background: transparent;
+}
+.system__pin {
+  height: 100dvh;
+  padding: var(--gutter);
+  position: relative;
+  overflow: hidden;
+  /* Indigo edges tint the technical chapter without hiding the model. */
+  background:
+    linear-gradient(to bottom, color-mix(in srgb, var(--ai-indigo) 62%, transparent), transparent 30%,
+      transparent 70%, color-mix(in srgb, var(--ai-indigo) 62%, transparent)),
+    radial-gradient(140% 100% at 50% 50%, transparent 46%, color-mix(in srgb, var(--indigo-deep) 55%, transparent));
+}
+.system__head { display: flex; justify-content: space-between; align-items: baseline; }
+.system__hint { color: var(--fog); }
+
+.system__callouts { list-style: none; padding: 0; }
+
+/* Default (also the reduced-motion layout): a plain readable stack. */
+.callout { max-width: 30em; margin-bottom: 2.2rem; }
+.callout__num {
+  color: var(--verdigris-bright);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  display: block;
+  margin-bottom: 0.4rem;
+}
+.callout__title {
+  font-family: var(--serif);
+  font-size: clamp(1.6rem, 3vw, 2.4rem);
+}
+.callout__spec { color: var(--fog); margin: 0.35rem 0 0.6rem; }
+.callout__body { max-width: 26em; }
+
+/* Pinned mode (added by JS when motion is allowed): callouts stack in one
+   corner and are faded in/out by the assembly timeline. */
+.system--pinned .system__callouts { position: absolute; left: var(--gutter); bottom: 14vh; }
+.system--pinned .callout {
+  position: absolute; left: 0; bottom: 0;
+  margin: 0;
+  width: min(30em, 74vw);
+  padding: 1.2rem 1.4rem;
+  background: color-mix(in srgb, var(--indigo-deep) 78%, transparent);
+  border-left: 2px solid var(--verdigris);
+  opacity: 0; visibility: hidden; /* the timeline reveals each in turn */
+}
+
+/* ---------- 9. Ch.03 — Configurator (transparent stage) ---------- */
+.config {
+  min-height: 100dvh;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(21rem, 0.9fr);
+  gap: var(--space);
+  padding: var(--gutter);
+  align-items: center;
+  background: transparent;
+}
+.config__stage { min-height: 40vh; } /* the model shows through this empty cell */
+.config__panel {
+  background: color-mix(in srgb, var(--yakisugi) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fog) 25%, transparent);
+  padding: clamp(1.4rem, 3vw, 2.6rem);
+  max-width: 34rem;
+  justify-self: end;
+}
+.config__title {
+  font-family: var(--serif);
+  font-size: clamp(2rem, 3.6vw, 3.2rem);
+  margin-bottom: 1.6rem;
+}
+
+.seg-group { margin-bottom: 1.4rem; }
+.seg-group legend { color: var(--fog); margin-bottom: 0.6rem; }
+.seg-group { display: block; }
+.seg { display: inline-block; margin: 0 0.5rem 0.5rem 0; }
+.seg input {
+  /* visually hidden but still focusable so keyboard users get the ring */
+  position: absolute;
+  width: 1px; height: 1px;
+  opacity: 0.001;
+}
+.seg span {
+  display: inline-block;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid color-mix(in srgb, var(--fog) 55%, transparent);
+  border-radius: 99px;
+  color: var(--hinoki-dim);
+  font-size: 0.95rem;
+  transition: background 0.25s, color 0.25s, border-color 0.25s;
+}
+.seg:hover span { border-color: var(--fog); color: var(--hinoki); }
+.seg input:checked + span {
+  background: var(--verdigris);
+  border-color: var(--verdigris);
+  color: var(--yakisugi);
+  font-weight: 500;
+}
+.seg input:focus-visible + span {
+  outline: 2px solid var(--verdigris-bright);
+  outline-offset: 3px;
+}
+
+.spec {
+  margin-top: 1.8rem;
+  border-top: 1px solid color-mix(in srgb, var(--fog) 35%, transparent);
+  color: var(--hinoki-dim);
+}
+.spec__row {
+  display: flex; justify-content: space-between; gap: 1rem;
+  padding: 0.5rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--fog) 18%, transparent);
+}
+.spec__row dt { color: var(--fog); }
+.spec__row dd { text-align: right; }
+
+/* ---------- 10. Ch.04 — Details (opaque hinoki breather) ---------- */
+.details {
+  background: var(--hinoki);
+  color: var(--yakisugi);
+  padding: 16vh 0 18vh;
+}
+.details .kicker { color: color-mix(in oklab, var(--fog) 80%, var(--yakisugi) 20%); }
+.details .kicker__num { color: var(--verdigris); }
+.details__head {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding-inline: var(--gutter);
+}
+.details__note { color: var(--fog); }
+
+.gallery {
+  display: flex; gap: clamp(1rem, 2.5vw, 2rem);
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  padding: 2rem var(--gutter) 2.4rem;
+  scrollbar-color: var(--verdigris) transparent;
+}
+.panel {
+  flex: 0 0 auto;
+  width: min(34rem, 80vw);
+  scroll-snap-align: center;
+}
+.panel__art {
+  aspect-ratio: 4 / 3;
+  border: 1px solid color-mix(in srgb, var(--yakisugi) 25%, transparent);
+}
+.panel__cap { margin-top: 0.7rem; color: color-mix(in oklab, var(--yakisugi) 72%, var(--fog) 28%); }
+
+/* Generated textures — every "photo" is gradients + the grain overlay above it. */
+.tex-yakisugi {
+  /* charred board wall: vertical planks, alligator-crack sheen */
+  background:
+    repeating-linear-gradient(90deg,
+      #0d0b09 0 3.2rem, #1c1712 3.2rem 3.35rem),
+    repeating-linear-gradient(0deg,
+      transparent 0 0.55rem, rgba(232, 223, 200, 0.045) 0.55rem 0.6rem),
+    linear-gradient(115deg, #0b0908 15%, #221c15 48%, #0b0908 85%);
+  background-blend-mode: normal, overlay, normal;
+}
+.tex-seam {
+  /* the glass-to-timber junction: cedar left, mullion, reflection right */
+  background:
+    linear-gradient(90deg,
+      #181310 0 34%, #241d16 34% 36%, #0f0d0b 36% 38%,
+      color-mix(in srgb, var(--ai-indigo) 85%, black) 38% 40%,
+      color-mix(in oklab, var(--ai-indigo) 60%, var(--verdigris) 40%) 40% 42%,
+      var(--ai-indigo) 42% 100%),
+    linear-gradient(160deg, transparent 40%, rgba(232, 223, 200, 0.16) 47%, transparent 55%),
+    linear-gradient(200deg, transparent 60%, rgba(78, 124, 116, 0.35) 78%, transparent 92%);
+  background-blend-mode: normal, screen, screen;
+}
+.tex-copper {
+  /* standing-seam roof: verdigris panels with raised ribs, raking light */
+  background:
+    repeating-linear-gradient(90deg,
+      #3d635c 0 0.25rem, #4E7C74 0.25rem 4.4rem,
+      #5f948b 4.4rem 4.55rem, #2f4d47 4.55rem 4.8rem),
+    linear-gradient(155deg, rgba(232, 223, 200, 0.22) 0%, transparent 42%),
+    linear-gradient(20deg, rgba(20, 17, 14, 0.5) 0%, transparent 55%);
+  background-blend-mode: normal, soft-light, multiply;
+}
+.panel__art--indigo {
+  background: var(--ai-indigo);
+  color: var(--hinoki);
+  display: grid; place-items: center;
+  padding: 1.4rem;
+}
+.panel__art--indigo svg { width: 100%; height: 100%; }
+.bp-dims { fill: color-mix(in oklab, var(--hinoki) 75%, var(--verdigris) 25%); }
+
+/* ---------- 11. Ch.05 — In Practice (opaque hinoki) ---------- */
+.practice {
+  background: var(--hinoki);
+  color: var(--yakisugi);
+  padding: 6vh var(--gutter) 18vh;
+  border-top: 1px solid color-mix(in srgb, var(--yakisugi) 14%, transparent);
+}
+.practice .kicker { color: color-mix(in oklab, var(--fog) 80%, var(--yakisugi) 20%); }
+.practice .kicker__num { color: var(--verdigris); }
+
+.practice__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: clamp(1.5rem, 4vw, 3rem);
+  align-items: end;
+  max-width: 72rem;
+  margin-inline: auto;
+}
+.stat--big { grid-column: 1 / -1; }
+.stat__num {
+  font-family: var(--serif);
+  font-size: clamp(2.6rem, 5vw, 4.2rem);
+  line-height: 1;
+  color: var(--yakisugi);
+  font-variant-numeric: tabular-nums; /* no layout shift while counting up */
+}
+/* The one big number — Unbounded use 3 of 3. */
+.stat__num--impact {
+  font-family: var(--impact);
+  font-weight: 640;
+  font-size: clamp(6rem, 18vw, 15rem);
+  letter-spacing: -0.02em;
+  color: var(--verdigris);
+}
+.stat__label {
+  color: color-mix(in oklab, var(--yakisugi) 70%, var(--fog) 30%);
+  max-width: 18em;
+  margin-top: 0.4rem;
+}
+
+.loop {
+  max-width: 30rem;
+  margin: 14vh auto 0;
+  text-align: center;
+  color: var(--ai-indigo);
+}
+.loop svg { width: 100%; height: auto; }
+.loop__nodes text { fill: var(--ai-indigo); }
+.loop__center text { fill: var(--verdigris); }
+.loop figcaption { margin-top: 1rem; color: var(--fog); }
+
+/* ---------- 12. Ch.06 — Field Notes (opaque, back to dark) ---------- */
+.notes {
+  background: var(--yakisugi);
+  padding: 18vh var(--gutter);
+}
+.notes__strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  max-width: 72rem;
+  margin-inline: auto;
+}
+.note p {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.15rem, 1.8vw, 1.45rem);
+  line-height: 1.45;
+  color: var(--hinoki);
+}
+.note cite { display: block; margin-top: 1.1rem; color: var(--fog); font-style: normal; }
+
+/* ---------- 13. Ch.07 — Begin (transparent: the settlement payoff) ---------- */
+.begin {
+  min-height: 220vh; /* headroom for the camera pull-back scrub */
+  background: transparent;
+  display: flex; flex-direction: column;
+  padding: 24vh var(--gutter) 16vh;
+  gap: 16vh;
+}
+.begin__statement { max-width: var(--measure); }
+.begin__title {
+  font-family: var(--serif);
+  font-size: var(--fs-headline);
+  margin-bottom: 1rem;
+}
+.begin__para { max-width: 30em; }
+
+.begin__formwrap {
+  align-self: flex-end;
+  width: min(28rem, 100%);
+  background: color-mix(in srgb, var(--yakisugi) 88%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fog) 25%, transparent);
+  padding: clamp(1.4rem, 3vw, 2.4rem);
+}
+.begin__formtitle {
+  font-family: var(--serif);
+  font-size: 1.5rem;
+  margin-bottom: 1.4rem;
+}
+.field { margin-bottom: 1.1rem; display: flex; flex-direction: column; gap: 0.35rem; }
+.field label { font-size: 0.95rem; color: var(--hinoki-dim); }
+.field input, .field select {
+  background: color-mix(in srgb, var(--hinoki) 6%, transparent);
+  border: 1px solid color-mix(in srgb, var(--fog) 55%, transparent);
+  color: var(--hinoki);
+  padding: 0.7rem 0.9rem;
+  border-radius: 4px;
+  min-height: 44px; /* touch target floor */
+}
+.field input:focus-visible, .field select:focus-visible {
+  outline: 2px solid var(--verdigris-bright);
+  outline-offset: 2px;
+  border-color: var(--verdigris);
+}
+.field--invalid input { border-color: var(--verdigris-bright); }
+.field__error { color: var(--verdigris-bright); text-transform: none; letter-spacing: 0.02em; }
+.waitlist__submit {
+  width: 100%;
+  margin-top: 0.5rem;
+  padding: 0.95rem 1.4rem;
+  min-height: 48px;
+  background: var(--verdigris);
+  color: var(--yakisugi);
+  border: 1px solid var(--verdigris);
+  border-radius: 4px;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  transition: background 0.25s, color 0.25s;
+}
+.waitlist__submit:hover {
+  background: transparent;
+  color: var(--verdigris-bright);
+}
+.waitlist__fine { margin-top: 0.9rem; color: var(--fog); text-align: center; }
+.form__done p:first-child { color: var(--verdigris-bright); margin-bottom: 0.8rem; }
+
+.begin__epigraph {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: clamp(1.3rem, 2.6vw, 2rem);
+  line-height: 1.4;
+  text-align: center;
+  color: var(--hinoki-dim);
+  max-width: 26em;
+  margin-inline: auto;
+}
+
+/* ---------- 14. Footer ---------- */
+.footer {
+  background: var(--indigo-deep);
+  padding: 10vh var(--gutter) 12vh;
+}
+.footer__nav {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(11rem, 1fr));
+  gap: 0.8rem 2rem;
+  max-width: 72rem;
+  margin: 0 auto 3.5rem;
+}
+.footer__nav a {
+  color: var(--hinoki);
+  text-decoration: none;
+  display: flex; align-items: baseline; gap: 0.9em;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid color-mix(in srgb, var(--fog) 25%, transparent);
+  transition: color 0.25s, border-color 0.25s;
+}
+.footer__nav a .mono { color: var(--verdigris-bright); }
+.footer__nav a:hover { color: var(--verdigris-bright); border-color: var(--verdigris); }
+.footer__meta {
+  max-width: 72rem; margin-inline: auto;
+  display: flex; flex-direction: column; gap: 0.6rem;
+  color: var(--fog);
+}
+.footer__fine { font-size: 0.85rem; opacity: 0.75; }
+
+/* ---------- 15. Responsive ---------- */
+@media (max-width: 900px) {
+  .config { grid-template-columns: 1fr; align-items: end; }
+  .config__stage { min-height: 46vh; } /* model above, panel below */
+  .config__panel { justify-self: stretch; max-width: none; }
+  .begin__formwrap { align-self: stretch; }
+}
+
+@media (max-width: 600px) {
+  :root { --fs-broken: clamp(3rem, 17vw, 5rem); }
+  .system__head { flex-direction: column; gap: 0.3rem; }
+  .system--pinned .system__callouts { bottom: 9vh; }
+  .hero__cue { top: auto; bottom: calc(env(safe-area-inset-bottom, 0px) + 4.6rem); }
+  .chrome__counter { bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem); }
+  .chrome__sound { bottom: calc(env(safe-area-inset-bottom, 0px) + 1rem); }
+  .practice { padding-top: 12vh; }
+}
+
+@media (min-width: 1800px) {
+  /* Ultrawide: hold the line lengths, let the atmosphere widen instead. */
+  .manifesto__body, .begin__statement { margin-inline: auto; }
+  .begin { padding-inline: max(var(--gutter), calc((100vw - 90rem) / 2)); }
+  .details__head, .gallery { padding-inline: max(var(--gutter), calc((100vw - 100rem) / 2)); }
+}
+
+/* ---------- 16. Reduced motion: genuinely calmer, not just faster ---------- */
+@media (prefers-reduced-motion: reduce) {
+  .hero__arrow, .chrome__sound[aria-pressed="true"] .chrome__bars rect { animation: none; }
+
+  /* The manifesto corridor collapses to a plain page; every line visible. */
+  .manifesto__stack { height: auto; }
+  .manifesto__sticky { position: static; height: auto; padding-block: 18vh 6vh; }
+
+  /* The assembly chapter reads as a document instead of a pin. */
+  .system { height: auto; }
+  .system__pin { height: auto; overflow: visible; }
+  .system__hint { display: none; }
+
+  .begin { min-height: 100vh; }
+
+  .gallery { scroll-behavior: auto; }
+}

@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ENGAWA — Dwellings for the space between</title>
+  <meta name="description" content="ENGAWA hand-builds EN-01: a single off-grid room on slender steel piers — charred cedar, one full-height glass wall, and the threshold in between. A scroll journey in seven chapters.">
+  <meta name="theme-color" content="#14110E">
+
+  <!-- Favicon: the EN-01 silhouette on piers, generated inline. No image files anywhere in this project. -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%2314110E'/%3E%3Crect x='16' y='22' width='32' height='16' fill='none' stroke='%23E8DFC8' stroke-width='3'/%3E%3Cline x1='22' y1='38' x2='22' y2='50' stroke='%234E7C74' stroke-width='3'/%3E%3Cline x1='42' y1='38' x2='42' y2='50' stroke='%234E7C74' stroke-width='3'/%3E%3Cline x1='10' y1='52' x2='54' y2='52' stroke='%238B8579' stroke-width='2'/%3E%3C/svg%3E">
+
+  <!-- The four type roles (§4): Newsreader = display serif, Unbounded = impact (3 uses only),
+       Bricolage Grotesque = body/UI, IBM Plex Mono = coordinates & spec data. -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300..700&family=IBM+Plex+Mono:wght@400;500&family=Newsreader:ital,opsz,wght@0,6..72,300..600;1,6..72,300..600&family=Unbounded:wght@300..800&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/styles.css">
+
+  <!-- three.js resolves through the import map; everything else attaches as a classic global. -->
+  <script type="importmap">
+  {
+    "imports": {
+      "three": "https://cdn.jsdelivr.net/npm/three@0.185.1/build/three.module.js",
+      "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.185.1/examples/jsm/"
+    }
+  }
+  </script>
+  <link rel="stylesheet" href="https://unpkg.com/lenis@1.3.25/dist/lenis.css">
+  <script src="https://unpkg.com/lenis@1.3.25/dist/lenis.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/ScrollTrigger.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/SplitText.min.js"></script>
+</head>
+
+<body class="is-gated">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- The throughline: one fixed canvas behind everything. Chapters with opaque
+       backgrounds cover it; transparent chapters (00, 02, 03, 07) let it show. -->
+  <canvas id="webgl" aria-hidden="true"></canvas>
+
+  <!-- ===== Threshold gate — the site does not begin until you step through ===== -->
+  <div class="threshold" id="threshold" role="dialog" aria-modal="true" aria-label="ENGAWA. Step through to begin.">
+    <p class="threshold__mark" aria-hidden="true">ENGAWA</p>
+    <p class="threshold__pct mono" aria-hidden="true"><span id="load-pct">00</span>&thinsp;%</p>
+    <button class="threshold__enter" id="enter-btn" type="button" disabled>Preparing the site</button>
+    <p class="threshold__hint mono">A SCROLL JOURNEY · 7 CHAPTERS · SOUND OPTIONAL</p>
+  </div>
+
+  <!-- ===== Persistent chrome: chapter counter (impact type, use 2 of 3) + sound ===== -->
+  <div class="chrome">
+    <p class="chrome__counter" aria-hidden="true"><span id="counter-num">00</span><span class="chrome__total">&hairsp;/&hairsp;07</span></p>
+    <button class="chrome__sound" id="sound-btn" type="button" aria-pressed="false">
+      <svg viewBox="0 0 18 12" width="18" height="12" aria-hidden="true" class="chrome__bars">
+        <rect x="1"  y="4" width="2" height="4"></rect>
+        <rect x="5"  y="2" width="2" height="8"></rect>
+        <rect x="9"  y="5" width="2" height="2"></rect>
+        <rect x="13" y="3" width="2" height="6"></rect>
+      </svg>
+      <span id="sound-label">Sound off</span>
+    </button>
+  </div>
+  <div class="grain" aria-hidden="true"></div>
+  <div class="cursor" aria-hidden="true">
+    <span class="cursor__dot"></span>
+    <span class="cursor__ring"></span>
+  </div>
+
+  <main id="main" tabindex="-1">
+
+    <!-- ===== Ch.00 — Arrival =========================================== -->
+    <section class="chapter hero" id="ch-00" data-chapter="00" aria-label="Chapter 00, Arrival">
+      <h1 class="hero__mark">ENGAWA</h1>
+      <p class="hero__tagline">Dwellings for the space between.</p>
+      <p class="hero__coord mono">34.9° N · 135.7° E — PROTOTYPE SITE 001</p>
+      <p class="hero__cue mono">SCROLL<span class="hero__arrow" aria-hidden="true">&darr;</span></p>
+    </section>
+
+    <!-- ===== Ch.01 — The Threshold (manifesto) ========================= -->
+    <section class="chapter manifesto" id="ch-01" data-chapter="01" aria-label="Chapter 01, The Threshold">
+      <!-- Broken headline: one thought exploded across three viewport-scale lines. -->
+      <div class="manifesto__stack">
+        <div class="manifesto__sticky">
+          <h2 class="manifesto__headline">
+            <span class="mline">Between</span>
+            <span class="mline">is also</span>
+            <span class="mline">a place.</span>
+          </h2>
+        </div>
+      </div>
+      <div class="manifesto__body">
+        <header class="chapter__head">
+          <p class="kicker mono"><span class="kicker__num">01</span>THE THRESHOLD</p>
+        </header>
+        <p class="manifesto__para">
+          Every house draws a line. On one side, weather is something you watch.
+          On the other, it is something you are standing in. For four hundred years,
+          Japanese carpenters kept a strip of floor that refused to choose — the
+          <em>engawa</em>, a veranda under the eaves, belonging to neither the room
+          nor the garden.
+        </p>
+        <p class="manifesto__para">
+          EN&#8209;01 is that strip of floor, rebuilt as an entire dwelling. One room.
+          One glass wall facing whatever is out there. Charred cedar on the other
+          three sides, and open ground passing underneath.
+        </p>
+        <p class="manifesto__pull">It does not hold the wilderness back.<br>It holds you, near it.</p>
+      </div>
+    </section>
+
+    <!-- ===== Ch.02 — The System (pinned assembly, indigo/technical) ==== -->
+    <section class="chapter system" id="ch-02" data-chapter="02" aria-label="Chapter 02, The System">
+      <div class="system__pin">
+        <header class="chapter__head system__head">
+          <p class="kicker mono"><span class="kicker__num">02</span>THE SYSTEM</p>
+          <p class="system__hint mono" aria-hidden="true">SCROLL TO ASSEMBLE</p>
+        </header>
+
+        <!-- Five callouts, one per assembly phase. The numbering is earned:
+             this is the actual erection sequence on site. -->
+        <ol class="system__callouts">
+          <li class="callout" data-phase="0">
+            <span class="callout__num mono">01</span>
+            <h3 class="callout__title">Piers</h3>
+            <p class="callout__spec mono">4–6 × ⌀168&thinsp;MM GALVANIZED STEEL</p>
+            <p class="callout__body">Screwed into the ground, never poured. No excavation, no concrete. The soil under EN&#8209;01 keeps living.</p>
+          </li>
+          <li class="callout" data-phase="1">
+            <span class="callout__num mono">02</span>
+            <h3 class="callout__title">Frame</h3>
+            <p class="callout__spec mono">LAMINATED CEDAR POST &amp; BEAM</p>
+            <p class="callout__body">A dry-jointed skeleton, cut in the workshop to the half millimeter and bolted together in a day.</p>
+          </li>
+          <li class="callout" data-phase="2">
+            <span class="callout__num mono">03</span>
+            <h3 class="callout__title">Skin</h3>
+            <p class="callout__spec mono">YAKISUGI CLADDING · CHARRED ON SITE</p>
+            <p class="callout__body">Cedar boards burned until the surface turns to carbon. No paint, no sealant — the char is the weatherproofing.</p>
+          </li>
+          <li class="callout" data-phase="3">
+            <span class="callout__num mono">04</span>
+            <h3 class="callout__title">Threshold</h3>
+            <p class="callout__spec mono">1 × GLASS WALL, FLOOR TO EAVE</p>
+            <p class="callout__body">The fourth wall is not a wall. Triple glazed, full height, facing whichever direction the site argues for.</p>
+          </li>
+          <li class="callout" data-phase="4">
+            <span class="callout__num mono">05</span>
+            <h3 class="callout__title">Systems</h3>
+            <p class="callout__spec mono">4.2&thinsp;kW SOLAR · 4,200&thinsp;L RAIN CAPTURE</p>
+            <p class="callout__body">Panels on the roof, a tank between the piers, batteries under the floor. The loop closes. Nothing arrives by pipe or cable.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ===== Ch.03 — EN-01, the configurator =========================== -->
+    <section class="chapter config" id="ch-03" data-chapter="03" aria-label="Chapter 03, EN-01 configurator">
+      <div class="config__stage" aria-hidden="true"><!-- the model shows through here --></div>
+      <div class="config__panel">
+        <header class="chapter__head">
+          <p class="kicker mono"><span class="kicker__num">03</span>EN&#8209;01</p>
+        </header>
+        <h2 class="config__title">One room,<br>decided by you.</h2>
+
+        <form class="config__form" id="config-form">
+          <fieldset class="seg-group">
+            <legend class="mono">CLADDING</legend>
+            <label class="seg"><input type="radio" name="cladding" value="charred" checked><span>Charred cedar</span></label>
+            <label class="seg"><input type="radio" name="cladding" value="raw"><span>Raw cedar</span></label>
+            <label class="seg"><input type="radio" name="cladding" value="copper"><span>Seam copper</span></label>
+          </fieldset>
+          <fieldset class="seg-group">
+            <legend class="mono">FOOTPRINT</legend>
+            <label class="seg"><input type="radio" name="footprint" value="0"><span>28&thinsp;m²</span></label>
+            <label class="seg"><input type="radio" name="footprint" value="1" checked><span>42&thinsp;m²</span></label>
+            <label class="seg"><input type="radio" name="footprint" value="2"><span>58&thinsp;m²</span></label>
+          </fieldset>
+          <fieldset class="seg-group">
+            <legend class="mono">INTERIOR</legend>
+            <label class="seg"><input type="radio" name="interior" value="hinoki" checked><span>Warm hinoki</span></label>
+            <label class="seg"><input type="radio" name="interior" value="ash"><span>Cool ash</span></label>
+          </fieldset>
+        </form>
+
+        <!-- Live spec read-out — the archive voice applied to a build sheet. -->
+        <dl class="spec mono" id="spec" aria-live="polite">
+          <div class="spec__row"><dt>MODEL</dt><dd>EN&#8209;01</dd></div>
+          <div class="spec__row"><dt>FOOTPRINT</dt><dd id="spec-footprint">42&thinsp;M²</dd></div>
+          <div class="spec__row"><dt>ENVELOPE</dt><dd id="spec-envelope">6.4 × 6.6 × 3.4&thinsp;M</dd></div>
+          <div class="spec__row"><dt>CLADDING</dt><dd id="spec-cladding">YAKISUGI CEDAR</dd></div>
+          <div class="spec__row"><dt>GLAZING</dt><dd>1 × FULL-HEIGHT WALL</dd></div>
+          <div class="spec__row"><dt>PIERS</dt><dd id="spec-piers">6 × ⌀168&thinsp;MM STEEL</dd></div>
+          <div class="spec__row"><dt>INTERIOR</dt><dd id="spec-interior">HINOKI, WARM</dd></div>
+          <div class="spec__row"><dt>DRY WEIGHT</dt><dd id="spec-weight">11,400&thinsp;KG</dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- ===== Ch.04 — Details (horizontal gallery, generated textures) == -->
+    <section class="chapter details" id="ch-04" data-chapter="04" aria-label="Chapter 04, Details">
+      <header class="chapter__head details__head">
+        <p class="kicker mono"><span class="kicker__num">04</span>DETAILS</p>
+        <p class="details__note mono">SCROLL SIDEWAYS · 5 FRAMES</p>
+      </header>
+
+      <div class="gallery" tabindex="0" role="region" aria-label="Material close-ups. Scroll horizontally.">
+        <figure class="panel">
+          <div class="panel__art tex-yakisugi" aria-hidden="true"></div>
+          <figcaption class="panel__cap mono">FR&nbsp;04·01 — YAKISUGI GRAIN, SOUTH WALL</figcaption>
+        </figure>
+
+        <figure class="panel">
+          <div class="panel__art panel__art--indigo">
+            <!-- Blueprint-style joint drawing — SVG line art, not a photograph. -->
+            <svg viewBox="0 0 400 300" role="img" aria-label="Line drawing of the post and beam junction">
+              <g fill="none" stroke="currentColor" stroke-width="1.5">
+                <rect x="80" y="40" width="52" height="220"></rect>
+                <rect x="60" y="96" width="280" height="44"></rect>
+                <path d="M132 96 v44 M80 96 h-20 M340 118 h24" stroke-dasharray="4 5"></path>
+                <rect x="92" y="108" width="28" height="20"></rect>
+                <circle cx="106" cy="118" r="4"></circle>
+              </g>
+              <g class="bp-dims" font-size="11" letter-spacing="0.08em">
+                <text x="150" y="86">BEAM 160 × 440</text>
+                <text x="150" y="164">M16 THROUGH-BOLT</text>
+                <text x="40" y="286">POST 160 × 160 · JOINT B-2</text>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="panel__cap mono">FR&nbsp;04·02 — POST &amp; BEAM, JOINT B-2</figcaption>
+        </figure>
+
+        <figure class="panel">
+          <div class="panel__art tex-seam" aria-hidden="true"></div>
+          <figcaption class="panel__cap mono">FR&nbsp;04·03 — GLASS MEETS TIMBER, EAST SEAM</figcaption>
+        </figure>
+
+        <figure class="panel">
+          <div class="panel__art panel__art--indigo">
+            <svg viewBox="0 0 400 300" role="img" aria-label="Line drawing of a steel pier foot in the ground">
+              <g fill="none" stroke="currentColor" stroke-width="1.5">
+                <line x1="200" y1="20" x2="200" y2="180"></line>
+                <line x1="186" y1="20" x2="186" y2="180"></line>
+                <line x1="214" y1="20" x2="214" y2="180"></line>
+                <path d="M186 180 L160 250 M214 180 L240 250"></path>
+                <path d="M150 250 h100" stroke-width="2"></path>
+                <path d="M40 210 h120 M240 210 h120" stroke-dasharray="3 6"></path>
+                <path d="M186 60 h-40 M214 96 h40" stroke-dasharray="4 5"></path>
+              </g>
+              <g class="bp-dims" font-size="11" letter-spacing="0.08em">
+                <text x="60" y="52">⌀168 MM</text>
+                <text x="262" y="88">HELICAL FLIGHT</text>
+                <text x="52" y="200">GRADE LINE</text>
+                <text x="140" y="284">EMBED 1,800 MM · NO CONCRETE</text>
+              </g>
+            </svg>
+          </div>
+          <figcaption class="panel__cap mono">FR&nbsp;04·04 — PIER FOOT, SECTION</figcaption>
+        </figure>
+
+        <figure class="panel">
+          <div class="panel__art tex-copper" aria-hidden="true"></div>
+          <figcaption class="panel__cap mono">FR&nbsp;04·05 — STANDING SEAM, ROOF EDGE</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ===== Ch.05 — In Practice (quiet stats) ========================= -->
+    <section class="chapter practice" id="ch-05" data-chapter="05" aria-label="Chapter 05, In Practice">
+      <header class="chapter__head">
+        <p class="kicker mono"><span class="kicker__num">05</span>IN PRACTICE</p>
+      </header>
+
+      <div class="practice__grid">
+        <!-- The one permitted big number in impact type (Unbounded use 3 of 3). -->
+        <div class="stat stat--big">
+          <p class="stat__num stat__num--impact" data-count="38">38</p>
+          <p class="stat__label">days, first pier to handed-over keys</p>
+        </div>
+        <div class="stat">
+          <p class="stat__num" data-count="4200">4,200</p>
+          <p class="stat__label">liters of rain captured in a typical year</p>
+        </div>
+        <div class="stat">
+          <p class="stat__num" data-count="112">112</p>
+          <p class="stat__label">percent of annual demand met by the array</p>
+        </div>
+        <div class="stat">
+          <p class="stat__num" data-count="0">0</p>
+          <p class="stat__label">cubic meters of concrete poured on site</p>
+        </div>
+      </div>
+
+      <!-- The closed loop, drawn rather than photographed. -->
+      <figure class="loop">
+        <svg viewBox="0 0 460 460" role="img" aria-label="Radial diagram of the closed water and power loop: rain to tank to taps to garden; sun to array to battery to room.">
+          <g fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="230" cy="230" r="150" stroke-dasharray="2 7"></circle>
+            <circle cx="230" cy="230" r="52"></circle>
+            <path d="M354 156 l10 4 -6 9"></path>
+            <path d="M106 304 l-10 -4 6 -9"></path>
+          </g>
+          <g class="loop__nodes" font-size="12" letter-spacing="0.08em" text-anchor="middle">
+            <text x="230" y="62">RAIN</text>
+            <text x="378" y="150">TANK</text>
+            <text x="404" y="240">TAPS</text>
+            <text x="378" y="330">GARDEN</text>
+            <text x="230" y="412">SUN</text>
+            <text x="82" y="330">ARRAY</text>
+            <text x="56" y="240">BATTERY</text>
+            <text x="82" y="150">ROOM</text>
+          </g>
+          <g font-size="13" letter-spacing="0.1em" text-anchor="middle" class="loop__center">
+            <text x="230" y="226">EN-01</text>
+            <text x="230" y="244">CLOSED LOOP</text>
+          </g>
+        </svg>
+        <figcaption class="mono">WATER RUNS RIGHTWARD · POWER RUNS LEFTWARD · NOTHING ARRIVES BY PIPE</figcaption>
+      </figure>
+    </section>
+
+    <!-- ===== Ch.06 — Field Notes ======================================= -->
+    <section class="chapter notes" id="ch-06" data-chapter="06" aria-label="Chapter 06, Field Notes">
+      <header class="chapter__head">
+        <p class="kicker mono"><span class="kicker__num">06</span>FIELD NOTES</p>
+      </header>
+      <div class="notes__strip">
+        <blockquote class="note">
+          <p>“We drove the last pier before lunch, and by evening the deck was walkable. The site never heard an excavator.”</p>
+          <cite class="mono">— M. HOSHINO, SITE LEAD · PROTOTYPE 001</cite>
+        </blockquote>
+        <blockquote class="note">
+          <p>“The drawings call it a wall. Standing in front of it at dusk, it reads more like a suggestion.”</p>
+          <cite class="mono">— R. AOYAGI, STRUCTURAL ENGINEER</cite>
+        </blockquote>
+        <blockquote class="note">
+          <p>“I kept waiting to feel indoors. I never quite did. I understand now that this is the product.”</p>
+          <cite class="mono">— T. FERRAN, RESIDENT · UNIT 003</cite>
+        </blockquote>
+      </div>
+    </section>
+
+    <!-- ===== Ch.07 — Begin (settlement payoff + waitlist) ============== -->
+    <section class="chapter begin" id="ch-07" data-chapter="07" aria-label="Chapter 07, Begin">
+      <div class="begin__statement">
+        <header class="chapter__head">
+          <p class="kicker mono"><span class="kicker__num">07</span>BEGIN</p>
+        </header>
+        <h2 class="begin__title">Twelve a year.<br>Built in ones.</h2>
+        <p class="begin__para">
+          Each EN&#8209;01 is framed by the same four carpenters in a workshop outside
+          Takayama, then raised on its site in five weeks. We do not keep inventory.
+          We keep a queue.
+        </p>
+      </div>
+
+      <div class="begin__formwrap">
+        <h3 class="begin__formtitle">Reserve a place in the queue</h3>
+        <!-- name + data-netlify: on Netlify, submissions land in the site's
+             Forms dashboard with zero backend. The hidden form-name field is
+             required because main.js submits via fetch, not a page POST. -->
+        <form id="waitlist" class="waitlist" name="waitlist" method="POST" data-netlify="true" novalidate>
+          <input type="hidden" name="form-name" value="waitlist">
+          <div class="field">
+            <label for="wl-name">Name</label>
+            <input id="wl-name" name="name" type="text" autocomplete="name" required aria-describedby="wl-name-err">
+            <p class="field__error mono" id="wl-name-err" hidden>Enter a name so we know who is asking.</p>
+          </div>
+          <div class="field">
+            <label for="wl-email">Email</label>
+            <input id="wl-email" name="email" type="email" autocomplete="email" spellcheck="false" required aria-describedby="wl-email-err">
+            <p class="field__error mono" id="wl-email-err" hidden>That address looks incomplete — check it and try again.</p>
+          </div>
+          <div class="field">
+            <label for="wl-region">Nearest region</label>
+            <select id="wl-region" name="region">
+              <option value="jp">Japan</option>
+              <option value="eu">Europe</option>
+              <option value="na">North America</option>
+              <option value="oc">Oceania</option>
+              <option value="other">Elsewhere</option>
+            </select>
+          </div>
+          <button class="waitlist__submit" type="submit">Request a site review</button>
+          <p class="waitlist__fine mono">NO DEPOSIT · THE QUEUE IS ANSWERED IN ORDER</p>
+        </form>
+        <div class="form__done" id="form-done" hidden tabindex="-1" role="status">
+          <p class="mono">REQUEST LOGGED — QUEUE POSITION 214</p>
+          <p>We reply within two weeks, usually with questions about your site.</p>
+        </div>
+      </div>
+
+      <p class="begin__epigraph">
+        Walls were never where the wild ended —<br>only the place we chose to watch it from.
+      </p>
+    </section>
+
+    <!-- ===== Footer ==================================================== -->
+    <footer class="footer">
+      <nav class="footer__nav" aria-label="Chapter index">
+        <a href="#ch-00"><span class="mono">00</span>Arrival</a>
+        <a href="#ch-01"><span class="mono">01</span>The Threshold</a>
+        <a href="#ch-02"><span class="mono">02</span>The System</a>
+        <a href="#ch-03"><span class="mono">03</span>EN-01</a>
+        <a href="#ch-04"><span class="mono">04</span>Details</a>
+        <a href="#ch-05"><span class="mono">05</span>In Practice</a>
+        <a href="#ch-06"><span class="mono">06</span>Field Notes</a>
+        <a href="#ch-07"><span class="mono">07</span>Begin</a>
+      </nav>
+      <div class="footer__meta">
+        <p class="mono">34.9° N · 135.7° E — PROTOTYPE SITE 001</p>
+        <p class="mono">SITE, SOUND &amp; STRUCTURE GENERATED IN CODE — NO PHOTOGRAPHS WERE USED</p>
+        <p class="footer__fine">ENGAWA is a fictional company. Every name quoted on this page is invented.</p>
+      </div>
+    </footer>
+  </main>
+
+  <noscript>
+    <style>
+      .threshold, .chrome, .cursor, .grain, #webgl { display: none !important; }
+      body.is-gated { overflow: auto !important; }
+      .noscript-note { position: fixed; inset: auto 0 0 0; padding: 1rem; background: #24303D; color: #E8DFC8; text-align: center; z-index: 99; }
+    </style>
+    <p class="noscript-note">This site’s 3D throughline needs JavaScript. The chapters below remain readable without it.</p>
+  </noscript>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
